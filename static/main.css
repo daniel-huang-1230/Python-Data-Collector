@@ -44,3 +44,8 @@ html, body {
     margin: 150px;
     font-size: 30px;
 }
+
+.message {
+    font-size: 15px;
+    color: #ff9999;
+}

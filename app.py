@@ -1,5 +1,6 @@
 from flask import Flask,render_template, request
 from flask_sqlalchemy import SQLAlchemy
+from send_email import send_email
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1230@localhost/height_collector'
 db = SQLAlchemy(app)
@@ -22,9 +23,18 @@ def success():
     if  request.method == "POST": #to make sure the user access this URL through a POST request
         email = request.form["email_name"] #grab the input value from email entry
         height = request.form["height_name"]
-        print(height)
-        return render_template("success.html")
+        send_email(email,height)
+        #first check if the email account already exists in the datagase
+        if db.session.query(Data).filter(Data.email_ == email).count() == 0:
+            #SQLAlchemy requires fewer lines than psycopg2
+            data = Data(email, height)  #create the object from our model blueprint
+            db.session.add(data)
+            db.session.commit()
+            return render_template("success.html")
+        else:
+            return render_template("index.html",
+                                   text="email address already exists, try a new one")
 
 if __name__ == "__main__": #meaning if the script is being executed, rather than being imported
     app.debug = True
-    app.run(port=8000)
+    app.run(port=5000)
